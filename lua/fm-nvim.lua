@@ -37,6 +37,7 @@ local config = {
         gitui_cmd = "gitui",
         ranger_cmd = "ranger",
         joshuto_cmd = "joshuto",
+        yazi_cmd = "yazi",
         lazygit_cmd = "lazygit",
         neomutt_cmd = "neomutt",
         taskwarrior_cmd = "taskwarrior-tui"
@@ -270,6 +271,14 @@ function M.Joshuto(dir)
         createWin(config.cmds.joshuto_cmd .. " --output-file /tmp/fm-nvim --file-chooser " .. dir, "l")
     elseif config.ui.default == "split" then
         createSplit(config.cmds.joshuto_cmd .. " --output-file /tmp/fm-nvim --file-chooser " .. dir, "l")
+    end
+end
+function M.Yazi(dir)
+    dir = dir or "."
+    if config.ui.default == "float" then
+        createWin(config.cmds.yazi_cmd .. " --chooser-file=/tmp/fm-nvim " .. dir, "o")
+    elseif config.ui.default == "split" then
+        createSplit(config.cmds.yazi_cmd .. " --chooser-file=/tmp/fm-nvim " .. dir, "o")
     end
 end
 function M.Lazygit(dir)
