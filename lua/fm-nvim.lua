@@ -51,9 +51,11 @@ local config = {
     }
 }
 
-local fm_nvim_path = "/tmp/fm-nvim"
+local choose_file_path
 if vim.fn.has("win32") == 1 then
-    fm_nvim_path = vim.fn.getenv("TEMP") .. "/fm-nvim"
+    choose_file_path = vim.fn.getenv("TEMP") .. "/fm-nvim"
+else
+  choose_file_path = "/tmp/fm-nvim"
 end
 
 local method = config.edit_cmd
@@ -81,7 +83,7 @@ local function on_exit()
     for _, func in ipairs(config.on_close) do
         func()
     end
-    checkFile(fm_nvim_path)
+    checkFile(choose_file_path)
     checkFile(vim.fn.getenv("HOME") .. "/.cache/fff/opened_file")
     vim.cmd [[ checktime ]]
 end
@@ -166,127 +168,143 @@ end
 
 function M.Lf(dir)
     dir = dir or "."
+    local cmd = string.format("%s --selection-path=%s %s", config.cmds.lf_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.lf_cmd .. " -selection-path " .. fm_nvim_path .. " " .. dir, "l")
+        createWin(cmd, "l")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.lf_cmd .. " -selection-path " .. fm_nvim_path .. " " .. dir, "l")
+        createSplit(cmd, "l")
     end
 end
 function M.Fm(dir)
     dir = dir or "."
+    local cmd = string.format("%s --selection-path=%s --start-dir=%s", config.cmds.fm_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.fm_cmd .. " --selection-path /tmp/fm-nvim --start-dir " .. dir, "E")
+        createWin(cmd, "E")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.fm_cmd .. " --selection-path /tmp/fm-nvim --start-dir " .. dir, "E")
+        createSplit(cmd, "E")
     end
 end
 function M.Nnn(dir)
     dir = dir or "."
+    local cmd = string.format("%s -p %s %s", config.cmds.nnn_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.nnn_cmd .. " -p /tmp/fm-nvim " .. dir, "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.nnn_cmd .. " -p /tmp/fm-nvim " .. dir, "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Fff(dir)
     dir = dir or "."
+    local cmd = string.format("%s -p %s %s", config.cmds.fff_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.fff_cmd .. " -p " .. dir, "l")
+        createWin(cmd, "l")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.fff_cmd .. " -p " .. dir, "l")
+        createSplit(cmd, "l")
     end
 end
 function M.Twf(dir)
     dir = dir or "."
+    local cmd = string.format("%s > %s -dir %s", config.cmds.twf_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.twf_cmd .. " > /tmp/fm-nvim -dir " .. dir, "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.twf_cmd .. " > /tmp/fm-nvim -dir " .. dir, "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Fzf()
+    local cmd = string.format("%s > %s", config.cmds.fzf_cmd, choose_file_path)
     if config.ui.default == "float" then
-        createWin(config.cmds.fzf_cmd .. " > /tmp/fm-nvim", "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.fzf_cmd .. " > /tmp/fm-nvim", "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Fzy()
+    local cmd = string.format("%s > %s", config.cmds.fzy_cmd, choose_file_path)
     if config.ui.default == "float" then
-        createWin(config.cmds.fzy_cmd .. " > /tmp/fm-nvim", "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.fzy_cmd .. " > /tmp/fm-nvim", "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Xplr(dir)
     dir = dir or "."
+    local cmd = string.format("%s > %s %s", config.cmds.xplr_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.xplr_cmd .. " > /tmp/fm-nvim " .. dir, "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.xplr_cmd .. " > /tmp/fm-nvim " .. dir, "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Vifm(dir)
     dir = dir or "."
+    local cmd = string.format("%s --choose-files %s %s", config.cmds.vifm_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.vifm_cmd .. " --choose-files /tmp/fm-nvim " .. dir, "l")
+        createWin(cmd, "l")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.vifm_cmd .. " --choose-files /tmp/fm-nvim " .. dir, "l")
+        createSplit(cmd, "l")
     end
 end
 function M.Skim()
+    local cmd = string.format("%s > %s", config.cmds.skim_cmd, choose_file_path)
     if config.ui.default == "float" then
-        createWin(config.cmds.skim_cmd .. " > /tmp/fm-nvim", "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.skim_cmd .. " > /tmp/fm-nvim", "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Broot(dir)
     dir = dir or "."
+    local cmd = string.format("%s --conf %s > %s %s", config.cmds.broot_cmd, config.broot_conf, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.broot_cmd .. " --conf " .. config.broot_conf .. " > /tmp/fm-nvim " .. dir, "<CR>")
+        createWin(cmd, "<CR>")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.broot_cmd .. " --conf " .. config.broot_conf .. " > /tmp/fm-nvim " .. dir, "<CR>")
+        createSplit(cmd, "<CR>")
     end
 end
 function M.Gitui(dir)
     dir = dir or "."
+    local cmd = string.format("%s -d %s", config.cmds.gitui_cmd, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.gitui_cmd .. " -d " .. dir, "e")
+        createWin(cmd, "e")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.gitui_cmd .. " -d " .. dir, "e")
+        createSplit(cmd, "e")
     end
 end
 function M.Ranger(dir)
     dir = dir or "."
+    local cmd = string.format("%s --choosefiles=%s %s", config.cmds.ranger_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.ranger_cmd .. " --choosefiles=/tmp/fm-nvim " .. dir, "l")
+        createWin(cmd, "l")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.ranger_cmd .. " --choosefiles=/tmp/fm-nvim " .. dir, "l")
+        createSplit(cmd, "l")
     end
 end
 function M.Joshuto(dir)
     dir = dir or "."
+    local cmd = string.format("%s --output-file=%s --file-chooser=%s", config.cmds.joshuto_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.joshuto_cmd .. " --output-file /tmp/fm-nvim --file-chooser " .. dir, "l")
+        createWin(cmd, "l")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.joshuto_cmd .. " --output-file /tmp/fm-nvim --file-chooser " .. dir, "l")
+        createSplit(cmd, "l")
     end
 end
 function M.Yazi(dir)
     dir = dir or "."
+    local cmd = string.format("%s --chooser-file=%s %s", config.cmds.yazi_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.yazi_cmd .. " --chooser-file=/tmp/fm-nvim " .. dir, "o")
+        createWin(cmd, "o")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.yazi_cmd .. " --chooser-file=/tmp/fm-nvim " .. dir, "o")
+        createSplit(cmd, "o")
     end
 end
 function M.Lazygit(dir)
     dir = dir or "."
+    local cmd = string.format("%s -w %s", config.cmds.lazygit_cmd, dir)
     if config.ui.default == "float" then
-        createWin(config.cmds.lazygit_cmd .. " -w " .. dir, "e")
+        createWin(cmd, "e")
     elseif config.ui.default == "split" then
-        createSplit(config.cmds.lazygit_cmd .. " -w " .. dir, "e")
+        createSplit(cmd, "e")
     end
 end
 function M.Neomutt()
