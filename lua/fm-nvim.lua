@@ -168,7 +168,7 @@ end
 
 function M.Lf(dir)
     dir = dir or "."
-    local cmd = string.format("%s --selection-path=%s %s", config.cmds.lf_cmd, choose_file_path, dir)
+    local cmd = string.format("%s --selection-path %s %s", config.cmds.lf_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
         createWin(cmd, "l")
     elseif config.ui.default == "split" then
@@ -177,7 +177,7 @@ function M.Lf(dir)
 end
 function M.Fm(dir)
     dir = dir or "."
-    local cmd = string.format("%s --selection-path=%s --start-dir=%s", config.cmds.fm_cmd, choose_file_path, dir)
+    local cmd = string.format("%s --selection-path %s --start-dir=%s", config.cmds.fm_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
         createWin(cmd, "E")
     elseif config.ui.default == "split" then
@@ -273,7 +273,7 @@ function M.Gitui(dir)
 end
 function M.Ranger(dir)
     dir = dir or "."
-    local cmd = string.format("%s --choosefiles=%s %s", config.cmds.ranger_cmd, choose_file_path, dir)
+    local cmd = string.format("%s --choosefiles %s %s", config.cmds.ranger_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
         createWin(cmd, "l")
     elseif config.ui.default == "split" then
@@ -282,7 +282,7 @@ function M.Ranger(dir)
 end
 function M.Joshuto(dir)
     dir = dir or "."
-    local cmd = string.format("%s --output-file=%s --file-chooser=%s", config.cmds.joshuto_cmd, choose_file_path, dir)
+    local cmd = string.format("%s --output-file %s --file-chooser %s", config.cmds.joshuto_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
         createWin(cmd, "l")
     elseif config.ui.default == "split" then
@@ -291,7 +291,7 @@ function M.Joshuto(dir)
 end
 function M.Yazi(dir)
     dir = dir or "."
-    local cmd = string.format("%s --chooser-file=%s %s", config.cmds.yazi_cmd, choose_file_path, dir)
+    local cmd = string.format("%s --chooser-file %s %s", config.cmds.yazi_cmd, choose_file_path, dir)
     if config.ui.default == "float" then
         createWin(cmd, "o")
     elseif config.ui.default == "split" then
