@@ -34,14 +34,13 @@ local config = {
 
 local choose_file
 if vim.fn.has("win32") == 1 then
-  choose_file = vim.fn.getenv("TEMP") .. "/fm-nvim"
+  choose_file = vim.fn.getenv("TEMP") .. "/fm.nvim"
 else
-  choose_file = "/tmp/fm-nvim"
+  choose_file = "/tmp/fm.nvim"
 end
 
 local function replace_placeholders(format, params)
-  local cmd = format
-  cmd = cmd:gsub("%%{choose_file}", params.choose_file)
+  local cmd = format:gsub("%%{choose_file}", params.choose_file)
   return cmd
 end
 
@@ -55,14 +54,17 @@ function M.set_method(opt)
 end
 
 local function check_file(file)
-  if io.open(file, "r") ~= nil then
-    for line in io.lines(file) do
-      vim.cmd(method .. " " .. vim.fn.fnameescape(line))
-    end
-    method = config.edit_cmd
-    io.close(io.open(file, "r"))
-    os.remove(file)
+  local f = io.open(file)
+  if f == nil then
+    return
   end
+
+  for line in f:lines() do
+    vim.cmd(method .. " " .. vim.fn.fnameescape(line))
+  end
+  method = config.edit_cmd    -- restore the default edit method
+  io.close(f)
+  os.remove(file)
 end
 
 local function on_exit()
@@ -71,42 +73,43 @@ local function on_exit()
     func()
   end
   check_file(choose_file)
-  check_file(vim.fn.getenv("HOME") .. "/.cache/fff/opened_file")
-  vim.cmd [[ checktime ]]
+  --vim.cmd [[ checktime ]]
 end
 
 local function post_creation(suffix)
   for _, func in ipairs(config.on_open) do
     func()
   end
+
   vim.api.nvim_buf_set_option(M.buf, "filetype", "Fm")
-  vim.api.nvim_buf_set_keymap(
-    M.buf,
-    "t",
-    config.mappings.edit,
-    '<C-\\><C-n>:lua require("fm-nvim").set_method("edit")<CR>i' .. suffix,
-    { silent = true }
+
+  local function on_suffix(m, s)
+      require("fm").set_method(m)
+      --vim.api.nvim_command("startinsert")
+      if config.debug then
+        print("method: ", m, "feedkeys: ", s)
+      end
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(s or "", true, true, true), "n", false)
+  end
+  vim.keymap.set("t", config.mappings.edit, function()
+      on_suffix("edit", suffix)
+    end,
+    { buffer = M.buf, noremap = true, silent = true }
   )
-  vim.api.nvim_buf_set_keymap(
-    M.buf,
-    "t",
-    config.mappings.tabedit,
-    '<C-\\><C-n>:lua require("fm-nvim").set_method("tabedit")<CR>i' .. suffix,
-    { silent = true }
+  vim.keymap.set("t", config.mappings.tabedit, function()
+      on_suffix("tabedit", suffix)
+    end,
+    { buffer = M.buf, noremap = true, silent = true }
   )
-  vim.api.nvim_buf_set_keymap(
-    M.buf,
-    "t",
-    config.mappings.horz_split,
-    '<C-\\><C-n>:lua require("fm-nvim").set_method("split | edit")<CR>i' .. suffix,
-    { silent = true }
+  vim.keymap.set("t", config.mappings.horz_split, function()
+      on_suffix("split", suffix)
+    end,
+    { buffer = M.buf, noremap = true, silent = true }
   )
-  vim.api.nvim_buf_set_keymap(
-    M.buf,
-    "t",
-    config.mappings.vert_split,
-    '<C-\\><C-n>:lua require("fm-nvim").set_method("vsplit | edit")<CR>i' .. suffix,
-    { silent = true }
+  vim.keymap.set("t", config.mappings.vert_split, function()
+      on_suffix("vsplit", suffix)
+    end,
+    { buffer = M.buf, noremap = true, silent = true }
   )
   vim.api.nvim_buf_set_keymap(M.buf, "t", "<ESC>", config.mappings.ESC, { silent = true })
 end
@@ -153,31 +156,30 @@ local function create_split(cmd, suffix)
   end
 end
 
-function M.create_win(name, other_params, suffix)
+function M.create_win(name, other_params)
   local format_params = {
     choose_file = choose_file,
   }
-  local create_win_cmd = replace_placeholders(config.tools[name].create_win_cmd_format, format_params)
-      .. " " .. table.concat(other_params, " ")
+  local tool = config.tools[name]
   if config.ui.default == "float" then
+    local create_win_cmd = replace_placeholders(
+        tool.create_win_cmd_format or tool.create_split_cmd_format,
+        format_params
+      ) .. " " .. table.concat(other_params, " ")
     if config.debug then
       print("create_win_cmd: " .. create_win_cmd)
     end
-    create_win(create_win_cmd, suffix)
+    create_win(create_win_cmd, tool.suffix)
   elseif config.ui.default == "split" then
-    local create_split_cmd
-    local create_split_cmd_format = config.tools[name].create_split_cmd_format
-    if create_split_cmd_format == nil then
-      create_split_cmd = create_win_cmd
-    else
-      create_split_cmd = M.replace_placeholders(create_split_cmd_format, format_params)
-          .. " " .. table.concat(other_params, " ")
-    end
+    local create_split_cmd = M.replace_placeholders(
+        tool.create_split_cmd_format or tool.create_win_cmd_format,
+        format_params
+      ) .. " " .. table.concat(other_params, " ")
 
     if config.debug then
       print("create_split_cmd: ", create_split_cmd)
     end
-    create_split(create_split_cmd, suffix)
+    create_split(create_split_cmd, tool.suffix)
   end
 end
 
