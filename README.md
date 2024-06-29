@@ -69,12 +69,10 @@ require('fm-nvim').setup {
     ESC        = "<ESC>"
   },
 
-  -- Path to broot config
-  broot_conf = vim.fn.stdpath("data") .. "/site/pack/packer/start/fm-nvim/assets/broot_conf.hjson",
-
   tools = {
     ranger = {  -- tool name
       -- `%{choose_file}` is a parameter supported by `fm-nvim`.
+      -- Because `fm-nvim` need to know which you select.
       create_win_cmd_format = "ranger --choosefile %{choose_file}",
       -- use with create_win_cmd_format if don't set
       --create_split_cmd_format = "ranger --choosefile %{choose_file}",
@@ -90,6 +88,8 @@ require('fm-nvim').setup {
     },
     -- ...
   },
+  debug = false,        -- Debug mode. Use `:message` to show the debug info.
+                        -- e.g. show final cmd.
 }
 ```
 
@@ -102,25 +102,14 @@ Using Lazy.nvim:
 config = function()
   require('fm-nvim').setup {
     ui = {
-      -- Default UI (can be "split" or "float")
       default = "float",
-
       float = {
-        -- Floating window border (see ':h nvim_open_win')
         border    = "single",
-
-        -- Highlight group for floating window/border (see ':h highlight-groups')
         float_hl  = "Normal",
         border_hl = "Normal",
-
-        -- Floating Window Transparency (see ':h winblend')
         blend     = 0,
-
-        -- Num from 0 - 1 for measurements
         height    = 0.9,
         width     = 0.9,
-
-        -- X and Y Axis of Window
         x         = 0.5,
         y         = 0.4
       },
@@ -139,6 +128,7 @@ config = function()
         create_win_cmd_format = "lazygit",
       },
     },
+    --debug = true,
   }
 
   local open_fm = function(does_just_open)
@@ -147,26 +137,26 @@ config = function()
     local fm = "yazi"
 
     if does_just_open then
-      require('fm-nvim').CreateWindow(fm, {"."}, "l")
+      require('fm-nvim').create_win(fm, { "." }, "l")
       return
     end
 
     if vim.fn['bufname']("%") == "" then
-      require('fm-nvim').CreateWindow(fm, {"."}, "l")
+      require('fm-nvim').create_win(fm, { "." }, "l")
       return
     end
 
     if fm == "ranger" then
-      -- Usage: CreateWindow(tool_name, other_params, suffix)
-      -- The final `cmd` used in CreateWindow combines the parameters
+      -- Usage: create_win(tool_name, other_params, suffix)
+      -- The final `cmd` used in create_win combines the parameters
       --   generated from `config.tools.xxx_cmd_format` with `other_params`.
       -- final cmd: `ranger --choosefile <the %{choose file} in format_cmd> --selectfile <current file> .`
       -- `l`:Assume your ranger use `l` to open a file.
-      require('fm-nvim').CreateWindow("ranger", {"--selectfile", vim.fn.expand("%:p"), "."}, "l")
+      require('fm-nvim').create_win("ranger", { "--selectfile", vim.fn.expand("%:p"), "." }, "l")
     elseif fm == "joshuto" then
-      require('fm-nvim').CreateWindow("joshuto", {"."}, "l")
+      require('fm-nvim').create_win("joshuto", { "." }, "l")
     elseif fm == "yazi" then
-      require('fm-nvim').CreateWindow("yazi", {vim.fn.expand("%:p")}, "o")
+      require('fm-nvim').create_win("yazi", { vim.fn.expand("%:p") }, "o")
     end
   end
 
@@ -175,17 +165,17 @@ config = function()
 
   -- If you want to create a command for `ranger`
   vim.api.nvim_create_user_command(
-      "Ranger",
-      function(opts)
-          require('fm-nvim').CreateWindow("ranger", {opts.args, "."}, "l")
-      end,
-      { nargs = '?', complete = 'dir', bang = true }
+    "Ranger",
+    function(opts)
+      require('fm-nvim').create_win("ranger", { opts.args, "." }, "l")
+    end,
+    { nargs = '?', complete = 'dir', bang = true }
   )
 
   vim.api.nvim_create_user_command(
     "Lazygit",
     function(opt)
-      require("fm-nvim").CreateWindow("lazygit", {"-w", vim.fn.expand("%:p:h"), opt.args}, "e")
+      require("fm-nvim").create_win("lazygit", { "-w", vim.fn.expand("%:p:h"), opt.args }, "e")
     end,
     {}
   )

@@ -18,7 +18,6 @@ local config = {
       size = 24
     }
   },
-  broot_conf = vim.fn.stdpath("data") .. "/site/pack/packer/start/fm-nvim/assets/broot_conf.hjson",
   edit_cmd = "edit",
   on_close = {},
   on_open = {},
@@ -30,6 +29,7 @@ local config = {
     ESC = "<ESC>"
   },
   tools = {},
+  debug = false,
 }
 
 local choose_file
@@ -39,7 +39,7 @@ else
   choose_file = "/tmp/fm-nvim"
 end
 
-function M.replace_placeholders(format, params)
+local function replace_placeholders(format, params)
   local cmd = format
   cmd = cmd:gsub("%%{choose_file}", params.choose_file)
   return cmd
@@ -50,11 +50,11 @@ function M.setup(user_options)
   config = vim.tbl_deep_extend("force", config, user_options)
 end
 
-function M.setMethod(opt)
+function M.set_method(opt)
   method = opt
 end
 
-local function checkFile(file)
+local function check_file(file)
   if io.open(file, "r") ~= nil then
     for line in io.lines(file) do
       vim.cmd(method .. " " .. vim.fn.fnameescape(line))
@@ -66,16 +66,16 @@ local function checkFile(file)
 end
 
 local function on_exit()
-  M.closeCmd()
+  M.close_cmd()
   for _, func in ipairs(config.on_close) do
     func()
   end
-  checkFile(choose_file)
-  checkFile(vim.fn.getenv("HOME") .. "/.cache/fff/opened_file")
+  check_file(choose_file)
+  check_file(vim.fn.getenv("HOME") .. "/.cache/fff/opened_file")
   vim.cmd [[ checktime ]]
 end
 
-local function postCreation(suffix)
+local function post_creation(suffix)
   for _, func in ipairs(config.on_open) do
     func()
   end
@@ -84,34 +84,34 @@ local function postCreation(suffix)
     M.buf,
     "t",
     config.mappings.edit,
-    '<C-\\><C-n>:lua require("fm-nvim").setMethod("edit")<CR>i' .. suffix,
+    '<C-\\><C-n>:lua require("fm-nvim").set_method("edit")<CR>i' .. suffix,
     { silent = true }
   )
   vim.api.nvim_buf_set_keymap(
     M.buf,
     "t",
     config.mappings.tabedit,
-    '<C-\\><C-n>:lua require("fm-nvim").setMethod("tabedit")<CR>i' .. suffix,
+    '<C-\\><C-n>:lua require("fm-nvim").set_method("tabedit")<CR>i' .. suffix,
     { silent = true }
   )
   vim.api.nvim_buf_set_keymap(
     M.buf,
     "t",
     config.mappings.horz_split,
-    '<C-\\><C-n>:lua require("fm-nvim").setMethod("split | edit")<CR>i' .. suffix,
+    '<C-\\><C-n>:lua require("fm-nvim").set_method("split | edit")<CR>i' .. suffix,
     { silent = true }
   )
   vim.api.nvim_buf_set_keymap(
     M.buf,
     "t",
     config.mappings.vert_split,
-    '<C-\\><C-n>:lua require("fm-nvim").setMethod("vsplit | edit")<CR>i' .. suffix,
+    '<C-\\><C-n>:lua require("fm-nvim").set_method("vsplit | edit")<CR>i' .. suffix,
     { silent = true }
   )
   vim.api.nvim_buf_set_keymap(M.buf, "t", "<ESC>", config.mappings.ESC, { silent = true })
 end
 
-local function createWin(cmd, suffix)
+local function create_win(cmd, suffix)
   M.buf = vim.api.nvim_create_buf(false, true)
   local win_height = math.ceil(vim.api.nvim_get_option("lines") * config.ui.float.height - 4)
   local win_width = math.ceil(vim.api.nvim_get_option("columns") * config.ui.float.width)
@@ -127,7 +127,7 @@ local function createWin(cmd, suffix)
     col = col
   }
   M.win = vim.api.nvim_open_win(M.buf, true, opts)
-  postCreation(suffix)
+  post_creation(suffix)
   vim.fn.termopen(cmd, { on_exit = on_exit })
   vim.api.nvim_command("startinsert")
   vim.api.nvim_win_set_option(
@@ -136,31 +136,34 @@ local function createWin(cmd, suffix)
     "Normal:" .. config.ui.float.float_hl .. ",FloatBorder:" .. config.ui.float.border_hl
   )
   vim.api.nvim_win_set_option(M.win, "winblend", config.ui.float.blend)
-  M.closeCmd = function()
+  M.close_cmd = function()
     vim.api.nvim_win_close(M.win, true)
     vim.api.nvim_buf_delete(M.buf, { force = true })
   end
 end
 
-local function createSplit(cmd, suffix)
+local function create_split(cmd, suffix)
   vim.cmd(config.ui.split.direction .. " " .. config.ui.split.size .. "vnew")
   M.buf = vim.api.nvim_get_current_buf()
-  postCreation(suffix)
+  post_creation(suffix)
   vim.fn.termopen(cmd, { on_exit = on_exit })
   vim.api.nvim_command("startinsert")
-  M.closeCmd = function()
+  M.close_cmd = function()
     vim.cmd("bdelete!")
   end
 end
 
-function M.CreateWindow(name, other_params, suffix)
+function M.create_win(name, other_params, suffix)
   local format_params = {
     choose_file = choose_file,
   }
-  local create_win_cmd = M.replace_placeholders(config.tools[name].create_win_cmd_format, format_params)
+  local create_win_cmd = replace_placeholders(config.tools[name].create_win_cmd_format, format_params)
       .. " " .. table.concat(other_params, " ")
   if config.ui.default == "float" then
-    createWin(create_win_cmd, suffix)
+    if config.debug then
+      print("create_win_cmd: " .. create_win_cmd)
+    end
+    create_win(create_win_cmd, suffix)
   elseif config.ui.default == "split" then
     local create_split_cmd
     local create_split_cmd_format = config.tools[name].create_split_cmd_format
@@ -171,7 +174,10 @@ function M.CreateWindow(name, other_params, suffix)
           .. " " .. table.concat(other_params, " ")
     end
 
-    createSplit(create_split_cmd, suffix)
+    if config.debug then
+      print("create_split_cmd: ", create_split_cmd)
+    end
+    create_split(create_split_cmd, suffix)
   end
 end
 
