@@ -161,11 +161,11 @@ config = function()
       -- The final `cmd` used in create_win combines the parameters
       --   generated from `config.tools.xxx_cmd_format` with `other_params`.
       -- final cmd: `ranger --choosefile <the %{choose file} in format_cmd> --selectfile <current file> .`
-      require('fm').create_win("ranger", { "--selectfile", vim.fn.expand("%:p"), "." })
+      require('fm').create_win("ranger", { "--selectfile", vim.fn.fnameescape(vim.fn.expand("%:p")), "." })
     elseif fm == "joshuto" then
       require('fm').create_win("joshuto", { "." })
     elseif fm == "yazi" then
-      require('fm').create_win("yazi", { vim.fn.expand("%:p") })
+      require('fm').create_win("yazi", { vim.fn.fnameescape(vim.fn.expand("%:p")) })
     end
   end
 
@@ -184,7 +184,7 @@ config = function()
   vim.api.nvim_create_user_command(
     "Lazygit",
     function(opt)
-      require("fm").create_win("lazygit", { "-w", vim.fn.expand("%:p:h"), opt.args })
+      require("fm").create_win("lazygit", { "-w", vim.fn.fnameescape(vim.fn.expand("%:p:h")), opt.args })
     end,
     { nargs = '?', bang = true }
   )
