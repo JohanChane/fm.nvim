@@ -204,6 +204,74 @@ require('fm-nvim').setup{
 }
 ```
 
+### My Configuration
+
+Using Lazy.nvim:
+
+```lua
+  {
+    "JohanChane/fm-nvim",
+    config = function()
+      require('fm-nvim').setup {
+        ui = {
+          -- Default UI (can be "split" or "float")
+          default = "float",
+
+          float = {
+            -- Floating window border (see ':h nvim_open_win')
+            border    = "single",
+
+            -- Highlight group for floating window/border (see ':h highlight-groups')
+            float_hl  = "Normal",
+            border_hl = "Normal",
+
+            -- Floating Window Transparency (see ':h winblend')
+            blend     = 0,
+
+            -- Num from 0 - 1 for measurements
+            height    = 0.9,
+            width     = 0.9,
+
+            -- X and Y Axis of Window
+            x         = 0.5,
+            y         = 0.4
+          },
+        },
+      }
+
+      local open_fm = function(does_just_open)
+        --local fm = "Ranger"
+        --local fm = "Joshuto"
+        local fm = "Yazi"
+
+        if does_just_open then
+          vim.cmd(fm)
+          return
+        end
+
+        if vim.fn['bufname']("%") == "" then
+          vim.cmd(fm)
+          return
+        end
+
+        local cmd = { fm }
+        if fm == "Ranger" then
+          vim.list_extend(cmd, { "--selectfile", vim.fn['expand']("%:p") })
+        elseif fm == "Joshuto" then
+          vim.list_extend(cmd, { vim.fn['expand']("%:p:h") })
+        elseif fm == "Yazi" then
+          vim.list_extend(cmd, { vim.fn['expand']("%:p") })
+        end
+
+        vim.cmd(table.concat(cmd, " "))
+      end
+
+      vim.keymap.set("n", "<M-f>", function() open_fm(false) end, { noremap = true })
+      vim.keymap.set("n", "<M-d>", function() open_fm(true) end, { noremap = true })
+    end,
+  },
+```
+
 ## Usage:
 
 Any of the following commands are fine...
