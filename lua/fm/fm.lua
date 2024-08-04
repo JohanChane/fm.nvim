@@ -1,7 +1,9 @@
 local setup_opts = require('fm.config').setup_opts
 local Window = require('fm.window').Window
 local fm_window = Window:new(setup_opts.ui)
-local log = require('fm.log').log
+local fm_log = require('fm.log').Log:new({
+  enable = setup_opts.debug
+})
 
 local choose_file
 local cf_edit_cmd = setup_opts.edit_cmd -- edit_cmd for choose files
@@ -25,7 +27,7 @@ local function handle_choosefile(file, edit_cmd)
   end
 
   for line in f:lines() do
-    log('lines of choose file', string.format('line: %s', line))
+    fm_log:log('lines of choose file', string.format('line: %s', line))
     vim.cmd(edit_cmd .. ' ' .. vim.fn.fnameescape(line))
   end
   cf_edit_cmd = setup_opts.edit_cmd -- reset cf_edit_cmd
@@ -44,7 +46,7 @@ local function set_keymap(buf_hdr, opts)
   local function on_suffix(c, s)
     cf_edit_cmd = c
     --vim.api.nvim_command('startinsert')
-    log('', string.format('cmd:%s, feedkeys:%s', c, s))
+    fm_log:log('', string.format('cmd:%s, feedkeys:%s', c, s))
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(s or '', true, true, true), 'n', false)
   end
 
@@ -112,7 +114,7 @@ local function open_fm(user_opts)
     { choose_file = get_choose_file() }
   ) .. ' ' .. table.concat(user_opts.other_params, ' ')
   if setup_opts.debug then
-    log('cmd', string.format('cmd: %s', create_win_cmd, {inspect = inspect}))
+    fm_log:log('cmd', string.format('cmd: %s', create_win_cmd, { inspect = inspect }))
   end
   opts.cmd = create_win_cmd
 
