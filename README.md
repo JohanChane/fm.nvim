@@ -72,9 +72,9 @@ I have added `ranger`, `joshuto`, `yazi`, `lazygit`. You can remove them if you 
     end
 
     vim.keymap.set('n', '<M-d>', function()
-      require('fm').open_fm({ name = 'ranger', other_params = { '.' } })
+      --require('fm').open_fm({ name = 'ranger', other_params = { '.' } })
       --require('fm').open_fm({name = 'joshuto', other_params = {'.'}})
-      --require('fm').open_fm({ name = 'yazi', other_params = { '.' } })
+      require('fm').open_fm({ name = 'yazi', other_params = { '.' } })
     end, { noremap = true })
     vim.keymap.set('n', '<M-f>', function()
       -- final cmd: yazi --chooser-file %{choose_file} get_path('%:p')
