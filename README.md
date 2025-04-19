@@ -5,6 +5,7 @@
 - Supports Windows platform
 - You can flexibly configure commands for TUI tools
 - If you find there's no plugin supporting your TUI tool, you can try configuring it manually.
+- Supporting `yazi`, `joshuto`, `ranger` `lazygit`, among others.
 
 ## Installation & Configuration
 
@@ -13,7 +14,6 @@
   "JohanChane/fm.nvim",
   config = function()
     require("fm").setup({
-      -- Only configure the tools you use; no need to configure all of them.
       tools = {
         -- This configuration means: when pressing `o` in yazi, it will run the following command.
         -- The command is `yazi --chooser-file <choose_file> '<entry>'`
@@ -21,18 +21,6 @@
         yazi = {
           create_win_cmd_format = "yazi --chooser-file %{_choose_file} '%{entry}'",
           suffix = "o",
-        },
-        joshuto = {
-          create_win_cmd_format = "joshuto --file-chooser --output-file %{_choose_file} '%{entry}'",
-          suffix = "l",
-        },
-        ranger = {
-          create_win_cmd_format = "ranger --choosefiles %{_choose_file} %{select_file_opt} '%{entry}'",
-          suffix = "l",
-        },
-        lazygit = {
-          create_win_cmd_format = "lazygit -w %{path}",
-          suffix = "e",
         },
       },
     })
