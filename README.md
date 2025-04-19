@@ -59,6 +59,10 @@
 }
 ```
 
+## Docs
+
+See [here](./docs)
+
 ## Acknowledgments
 
 - [fm-nvim](https://github.com/is0n/fm-nvim): My modifications are based on it.
