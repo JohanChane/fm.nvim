@@ -1,116 +1,64 @@
 # fm.nvim
 
-`fm.nvim` is a Neovim plugin that lets you use your favorite terminal file managers (and fuzzy finders) from within Neovim.
+## Features
 
-## Why I Created fm.nvim
+- Supports Windows platform
+- You can flexibly configure commands for TUI tools
+- If you find there's no plugin supporting your TUI tool, you can try configuring it manually.
 
-I like [fm-nvim](https://github.com/is0n/fm-nvim). I modified it to be flexibly configurable by users without adding unnecessary commands. Additionally, `choose file` supports `Windows` path formats, which make some tools work on Windows.
-
-If a new tool (e.g., TUI file manager) appears but there is no neovim plugin support yet, you can try configuring the tool yourself. it might work correctly.
-
-## Installation:
-
-[lazy.nvim](https://github.com/folke/lazy.nvim):
-
-```lua
-'JohanChane/fm.nvim'
-```
-
-## Configuration:
-
-The following configuration contains the defaults so if you find them satisfactory, there is no need to use the setup function.
-
-I have added `ranger`, `joshuto`, `yazi`, `lazygit`. You can remove them if you don't need:
+## Installation & Configuration
 
 ```lua
 {
-  --'JohanChane/fm.nvim',
-  dir = '~/.config/nvim/lua/fm.nvim',
+  "JohanChane/fm.nvim",
   config = function()
-    require('fm').setup {
-      ui = {
-        default = 'float',
-        float = {
-          border    = 'single', -- see ':h nvim_open_win'
-          float_hl  = 'Normal', -- see ':h winhl'
-          border_hl = 'Normal',
-          blend     = 0,        -- see ':h winblend'
-          height    = 0.9,      -- Num from 0 - 1 for measurements
-          width     = 0.9,
-          x         = 0.5,      -- X and Y Axis of Window
-          y         = 0.4
-        },
-        split = {
-          direction = 'left',   -- see `:h nvim_open_win()`
-          width = 24,
-          height = 16,
-        }
-      },
+    require("fm").setup({
+      -- Only configure the tools you use; no need to configure all of them.
       tools = {
-        ranger = {
-          create_win_cmd_format = 'ranger --choosefiles %{choose_file}',
-          suffix = 'l',
+        -- This configuration means: when pressing `o` in yazi, it will run the following command.
+        -- The command is `yazi --chooser-file <choose_file> '<entry>'`
+        -- `_choose_file` is internally used by fm.nvim (the name is fixed, not customizable)
+        yazi = {
+          create_win_cmd_format = "yazi --chooser-file %{_choose_file} '%{entry}'",
+          suffix = "o",
         },
         joshuto = {
-          create_win_cmd_format = 'joshuto --file-chooser --output-file %{choose_file}',
-          suffix = 'l',
+          create_win_cmd_format = "joshuto --file-chooser --output-file %{_choose_file} '%{entry}'",
+          suffix = "l",
         },
-        yazi = {
-          create_win_cmd_format = 'yazi --chooser-file %{choose_file}',
-          suffix = 'o',
+        ranger = {
+          create_win_cmd_format = "ranger --choosefiles %{_choose_file} %{select_file_opt} '%{entry}'",
+          suffix = "l",
         },
         lazygit = {
-          create_win_cmd_format = 'lazygit',
-          suffix = 'e',
+          create_win_cmd_format = "lazygit -w %{path}",
+          suffix = "e",
         },
       },
-      debug = false,
-    }
+    })
 
     local function get_path(modifier)
-      return vim.fn.fnameescape(vim.fn.expand(modifier))
+      local res = vim.fn.expand(modifier)
+      if res == "" then
+        res = vim.fn.getcwd()
+      end
+      return res
     end
 
-    vim.keymap.set('n', '<M-d>', function()
-      --require('fm').open_fm({ name = 'ranger', other_params = { '.' } })
-      --require('fm').open_fm({name = 'joshuto', other_params = {'.'}})
-      require('fm').open_fm({ name = 'yazi', other_params = { '.' } })
-    end, { noremap = true })
-    vim.keymap.set('n', '<M-f>', function()
-      -- final cmd: yazi --chooser-file %{choose_file} get_path('%:p')
-      require('fm').open_fm({ name = 'yazi', other_params = { get_path('%:p') } })
-      --require('fm').open_fm({name = 'joshuto', other_params = { get_path('%:p:h') }})
-
-      --[[
-      local function open_ranger()
-        local path = get_path('%:p')
-        local other_params = {}
-        if path == '' then
-          other_params = {'.'}
-        else
-          other_params = { '--selectfile', path, '.' }
-        end
-        require('fm').open_fm({name = 'ranger', other_params = other_params})
-      end
-      open_ranger()
-      --]]
+    ---- ## Use `yazi` tool
+    vim.keymap.set("n", "<M-d>", function()
+      -- Final command: `yazi --chooser-file %{_choose_file} 'vim.fn.getcwd()'`
+      require("fm").open_fm({ name = "yazi", cmd_params = { entry = vim.fn.getcwd() } })
     end, { noremap = true })
 
-    -- If you want to create a command for `ranger`
-    vim.api.nvim_create_user_command(
-      'Ranger',
-      function(opts)
-        require('fm').open_fm({ name = 'ranger', other_params = { opts.args, '.' } })
-      end,
-      { nargs = '?', complete = 'dir', bang = true }
-    )
-    vim.api.nvim_create_user_command(
-      'Lazygit',
-      function(opt)
-        require('fm').open_fm({ name = 'lazygit', other_params = { '-w', get_path('%:p:h'), opt.args } })
-      end,
-      { nargs = '?', bang = true }
-    )
+    vim.keymap.set("n", "<M-f>", function()
+      -- Final command: `yazi --chooser-file %{_choose_file} 'get_path("%:p")'`
+      require("fm").open_fm({ name = "yazi", cmd_params = { entry = get_path("%:p") } })
+    end, { noremap = true })
   end,
-},
+}
 ```
+
+## Acknowledgments
+
+- [fm-nvim](https://github.com/is0n/fm-nvim): My modifications are based on it.

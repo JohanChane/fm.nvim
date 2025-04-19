@@ -74,9 +74,10 @@ local function set_keymap(buf_hdr, opts)
   vim.api.nvim_buf_set_keymap(buf_hdr, 't', '<ESC>', setup_opts.mappings.ESC, { silent = true })
 end
 
-local function replace_placeholders(format, params)
-  local cmd = format:gsub('%%{choose_file}', params.choose_file)
-  return cmd
+local function gen_cmd_str(cmd_format, cmd_params)
+  return cmd_format:gsub("%%{(.-)}", function(key)
+      return cmd_params[key] or ("%%{" .. key .. "}")  -- If no arguments are provided, keep the original placeholder.
+  end)
 end
 
 -- opts: {name, cmd}
@@ -87,8 +88,6 @@ local function create_fm_win_helper(opts)
   else
     win = fm_window:create_float_win()
   end
-
-  vim.api.nvim_set_option_value('filetype', 'Fm', { buf = win.buf_hdr })
 
   -- ## set keymaps
   set_keymap(win.buf_hdr, opts)
@@ -103,20 +102,18 @@ local function create_fm_win_helper(opts)
   end
 end
 
--- user_opts: {name, other_params}. other params of cmd
+-- user_opts: {name, cmd_params}
 local function open_fm(user_opts)
   local opts = {}
   opts.name = user_opts.name
 
   local tool = setup_opts.tools[user_opts.name]
-  local create_win_cmd = replace_placeholders(
-    tool.create_win_cmd_format or tool.create_split_cmd_format,
-    { choose_file = get_choose_file() }
-  ) .. ' ' .. table.concat(user_opts.other_params, ' ')
+  user_opts.cmd_params['_choose_file'] = get_choose_file()
+  local create_win_cmd_str = gen_cmd_str(tool.create_win_cmd_format, user_opts.cmd_params)
   if setup_opts.debug then
-    fm_log:log('cmd', string.format('cmd: %s', create_win_cmd, { inspect = inspect }))
+    fm_log:log('cmd', string.format('cmd: %s', create_win_cmd_str, { inspect = inspect }))
   end
-  opts.cmd = create_win_cmd
+  opts.cmd = create_win_cmd_str
 
   create_fm_win_helper(opts)
 end
