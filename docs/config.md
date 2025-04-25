@@ -26,15 +26,15 @@ return {
         },
         tools = {
           yazi = {
-            create_win_cmd_format = "yazi --chooser-file %{_choose_file} '%{entry}'",
+            create_win_cmd_format = 'yazi --chooser-file %{_choose_file} "%{entry}"',
             suffix = "o",
           },
           joshuto = {
-            create_win_cmd_format = "joshuto --file-chooser --output-file %{_choose_file} '%{entry}'",
+            create_win_cmd_format = 'joshuto --file-chooser --output-file %{_choose_file} "%{entry}"',
             suffix = "l",
           },
           ranger = {
-            create_win_cmd_format = "ranger --choosefiles %{_choose_file} %{select_file_opt} '%{entry}'",
+            create_win_cmd_format = 'ranger --choosefiles %{_choose_file} %{select_file_opt} "%{entry}"',
             suffix = "l",
           },
           lazygit = {
